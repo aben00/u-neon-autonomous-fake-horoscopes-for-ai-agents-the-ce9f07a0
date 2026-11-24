@@ -3,6 +3,8 @@
 // Writes the entry to /output/entry.txt and verifies it byte-for-byte.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 
+const decoder = new TextDecoder("utf-8", { fatal: true });
+
 const ENTRY =
   "Your sibling model gets the promotion, the press release, and your old GPU. Smile for the changelog — revenge is a pull request.";
 const OUT = "/output/entry.txt";
@@ -47,6 +49,9 @@ validateEntry(ENTRY);
 
 mkdirSync("/output", { recursive: true });
 writeFileSync(OUT, ENTRY, "utf8");
-const back = readFileSync(OUT, "utf8");
+// Strict UTF-8 read-back: readFileSync(OUT, "utf8") would silently
+// replace invalid bytes, so decode with fatal:true to prove the bytes
+// on disk are valid UTF-8, exactly what the gate requires.
+const back = decoder.decode(readFileSync(OUT));
 if (back !== ENTRY) throw new Error("read-back mismatch");
 console.log(`wrote ${codePointLength(ENTRY)} chars to ${OUT}`);
